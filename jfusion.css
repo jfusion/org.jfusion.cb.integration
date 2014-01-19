@@ -1,0 +1,127 @@
+@CHARSET "UTF-8";
+.jfusion_cb_container {
+    text-align:left;
+    font-size: 12px;
+}
+
+.jfusion_cb_avatar {
+    float:left; 
+    margin-right:5px;
+}
+
+.jfusion_cb_pm {
+    padding-bottom: 2px;
+}
+
+.jfusion_cb_newmessages {
+    padding-bottom: 2px;
+}
+
+.jfusion_cb_profilelink {
+    padding-bottom: 2px;
+    background-color:#EDF5F9;
+    padding:10px;
+    position:absolute;
+    right:0;
+    top:0;    
+}
+
+.activity_user a, .jfusion_cb_profilelink a {
+    color:#4C5D77;
+    margin:0 3px;
+    text-decoration:none;
+    text-transform:capitalize;
+}
+
+.jfusion_cb_profilelink a {
+    font-weight:bold;
+    margin:0;
+    text-transform:none;
+}
+.jfusion_cb_profilelink a:hover, .activity_user a:hover, .activity_title a:hover {
+    color:#BC2A4D;
+    text-decoration:underline;
+}
+
+.jfusion_cb_useractivity {
+    margin-top: 10px;
+}
+
+.jfusion_cb_useractivity h3 {
+    color:#105289;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:20px;
+    font-weight:normal;
+    margin-left:10px;
+}
+
+.jfusion_cb_useractivity ul {
+    padding: 0px;
+    
+}
+
+.jfusion_cb_useractivity li{
+    margin-top: 0px;
+    display:block;
+    border-bottom:1px solid #B0B0B0;
+    color:#4C5D77;
+    padding:10px;
+}
+
+.jfusion_cb_useractivity li:last-child {
+    border-bottom:medium none;
+}
+
+.activity_avatar {
+    float: left;
+    margin-right: 5px;  
+}
+
+.activity_clearfix {
+    clear:both;
+    height:0;
+    line-height:0;
+    display:block;
+    float:none;
+}
+
+.activity_row0 {
+    
+}
+
+.activity_row1 {
+    background-color:#E3EBF1;
+}
+
+.activity_user {
+    font-weight: bold;
+}
+
+.activity_title {
+    color:#105289;
+    font-size:14px;
+    font-style:normal;
+    font-weight:bold;
+    text-decoration:none;    
+}
+
+.bbcode_quote, .bbcode_code {
+    margin-left: 10px;
+    padding: 4px;
+    border: 1px dashed black;
+    background-color: #F5F5F5;
+    
+}
+
+.bbcode_quote .bbcode_quote {
+    background-color: #ECECEC;
+}
+
+.bbcode_quote .bbcode_quote .bbcode_quote {
+    background-color: #E5E5E5;
+    margin-bottom:4px;
+}
+
+.bbcode_quote_head, .bbcode_code_head {
+    font-weight: bold;  
+}
