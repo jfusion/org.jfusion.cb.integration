@@ -2,17 +2,8 @@
 if ( ! ( defined( '_VALID_CB' ) || defined( '_JEXEC' ) || defined( '_VALID_MOS' ) ) ) { die( 'Direct Access to this location is not allowed.' ); }
 
 //require JFusion's framework
-if (!defined ('JFUSION_VERSION')) {
-    require_once JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_jfusion' . DS . 'models' . DS . 'model.factory.php';
-    $function_file = JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_jfusion' . DS . 'models' . DS . 'model.jfusionpublic.php';
-    if ( file_exists($function_file) ) {
-        define('JFUSION_VERSION', '2');
-        require_once $function_file;
-    }  else {
-        define('JFUSION_VERSION', '1');
-        require_once JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_jfusion' . DS . 'models' . DS . 'model.jfusion.php';
-    }
-}
+require_once JPATH_ADMINISTRATOR . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_jfusion' . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'model.factory.php';
+require_once JPATH_ADMINISTRATOR . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_jfusion' . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'model.jfusionpublic.php';
 
 global $mainframe;
 $UElanguagePath = (str_replace("/administrator", "", JPATH_SITE)) . '/components/com_comprofiler/plugin/user/plug_jfusionintegration/language';
@@ -69,15 +60,9 @@ class getjfusionTab extends cbTabHandler {
         $document = & JFactory::getDocument();
         $document->addStylesheet(JURI::root() . 'components/com_comprofiler/plugin/user/plug_jfusionintegration/jfusion.css');
 
-        if (JFUSION_VERSION == '1') {
-            $forum = & JFusionFactory::getForum($jname);
-            $activity = & $forum;
-            $public = & JFusionFactory::getPublic($jname);
-        } else {
-            $activity = & JFusionFactory::getPublic($jname);
-            $public = & $activity;
-            $forum = & JFusionFactory::getForum($jname);
-        }
+	    $activity = & JFusionFactory::getPublic($jname);
+	    $public = & $activity;
+	    $forum = & JFusionFactory::getForum($jname);
 
         $return = "<div class = 'jfusion_cb_container'>\n";
         if ($show_avatar) {
@@ -402,19 +387,9 @@ class getjfusionTab extends cbTabHandler {
      */
     function userActivated($user, $success)
     {
-        if (JFUSION_VERSION == 1) {
-            //only update the activation status if Joomla is set as master
-            $master = JFusionFunction::getMaster();
-            $success = ($master->name == 'joomla_int') ? $success : false;
-        }
-
         if ($success) {
             //update JFusion's plugins activation status
-            if (JFUSION_VERSION == 2) {
-                $plugins = & JFusionFactory::getPlugins();
-            } else {
-                $plugins = & JFusionFunction::getPlugins();
-            }
+	        $plugins = & JFusionFactory::getPlugins();
 
             //add a couple items in the way JFusion uses it
             $user->group_id = & $user->gid;
@@ -425,15 +400,13 @@ class getjfusionTab extends cbTabHandler {
                 $user->password = substr($user->password, 0, $saltStart);
             }
 
-            if (JFUSION_VERSION == 2) {
-                //add the usergroup and profile references
-                $user->reference = new stdClass();
-                $JFusionParams =& JFusionFactory::getParams('joomla_int');
-                $tmp = $JFusionParams->get('usergroups');
-                $user->reference->usergroup = (substr($tmp, 0, 2) == 'a:') ? unserialize($tmp) : '';
-                $tmp = $JFusionParams->get('profiles');
-                $user->reference->profile = (substr($tmp, 0, 2) == 'a:') ? unserialize($tmp) : '';
-            }
+	        //add the usergroup and profile references
+	        $user->reference = new stdClass();
+	        $JFusionParams =& JFusionFactory::getParams('joomla_int');
+	        $tmp = $JFusionParams->get('usergroups');
+	        $user->reference->usergroup = (substr($tmp, 0, 2) == 'a:') ? unserialize($tmp) : '';
+	        $tmp = $JFusionParams->get('profiles');
+	        $user->reference->profile = (substr($tmp, 0, 2) == 'a:') ? unserialize($tmp) : '';
 
             foreach ($plugins as $plugin) {
                 if ($plugin->name != 'joomla_int') {
@@ -469,11 +442,7 @@ function getJFusionVars($itemid, &$user)
             $jfusion_vars[$itemid] = false;
         }
 
-        if (JFUSION_VERSION == '1') {
-            $plugin = & JFusionFactory::getForum($jname);
-        } else {
-            $plugin = & JFusionFactory::getPublic($jname);
-        }
+	    $plugin = & JFusionFactory::getPublic($jname);
 
         $jfusion_vars[$itemid] = array("jname" => $jname, "plugin" => $plugin);
     }
