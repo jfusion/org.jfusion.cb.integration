@@ -103,4 +103,3 @@ define('USERLINK_CUSTOM_DESC', 'Specify a custom link if \'Custom\' is chosen ab
 define('USERLINK_SOFTWARE', 'Software to Use For Link');
 define('USERLINK_SOFTWARE_DESC', 'Choose the software you want to link the profile link to.  Note that the chosen software must be installed. By default, JFusion\'s plugin profile URL is used.');
 define('YES', 'Yes');
-?>

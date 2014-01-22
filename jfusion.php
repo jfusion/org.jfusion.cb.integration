@@ -4,20 +4,31 @@ if ( ! ( defined( '_VALID_CB' ) || defined( '_JEXEC' ) || defined( '_VALID_MOS' 
 //require JFusion's framework
 require_once JPATH_ADMINISTRATOR . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_jfusion' . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'model.factory.php';
 
+/**
+ * @ignore
+ * @var $mainframe JApplicationCms
+ */
 global $mainframe;
-$UElanguagePath = (str_replace("/administrator", "", JPATH_SITE)) . '/components/com_comprofiler/plugin/user/plug_jfusionintegration/language';
-if ( file_exists( $UElanguagePath . '/' . $mainframe->getCfg( 'lang' ) . '.php' ) ) {
-    include_once( $UElanguagePath . '/' . $mainframe->getCfg( 'lang' ) . '.php' );
+$UElanguagePath = (str_replace('/administrator', '', JPATH_SITE)) . '/components/com_comprofiler/plugin/user/plug_jfusionintegration/language';
+if ( file_exists($UElanguagePath . '/' . $mainframe->get('lang') . '.php')) {
+    include_once($UElanguagePath . '/' . $mainframe->get('lang') . '.php');
 } else {
-    include_once( $UElanguagePath . '/default_language.php' );
+    include_once($UElanguagePath . '/default_language.php');
 }
 
 global $_PLUGINS;
-$_PLUGINS->registerFunction( 'onUserActive', 'userActivated','getjfusionTab' );
+$_PLUGINS->registerFunction('onUserActive', 'userActivated', 'getjfusionTab');
 
+/**
+ * Class getjfusionTab
+ */
 class getjfusionTab extends cbTabHandler {
+	/**
+	 * @var JRegistry
+	 */
+	var $params;
 
-    function getjfusionTab() {
+	function getjfusionTab() {
         $this->cbTabHandler();
     }
 
@@ -32,8 +43,9 @@ class getjfusionTab extends cbTabHandler {
         global $my;
         $itemid = $this->params->get('itemid');
         if (is_numeric($itemid)) {
-            $menu = & JSite::getMenu();
-            $menu_param = & $menu->getParams($itemid);
+	        $app = JFactory::getApplication();
+	        $menu = $app->getMenu('site');
+            $menu_param = $menu->getParams($itemid);
             $plugin_param = unserialize(base64_decode($menu_param->get('JFusionPluginParam')));
             $jname = $plugin_param['jfusionplugin'];
         } else {
@@ -59,17 +71,16 @@ class getjfusionTab extends cbTabHandler {
         $document = & JFactory::getDocument();
         $document->addStylesheet(JURI::root() . 'components/com_comprofiler/plugin/user/plug_jfusionintegration/jfusion.css');
 
-	    $activity = & JFusionFactory::getPublic($jname);
-	    $public = & $activity;
-	    $forum = & JFusionFactory::getForum($jname);
+	    $public = JFusionFactory::getPublic($jname);
+	    $forum = JFusionFactory::getForum($jname);
 
         $return = "<div class = 'jfusion_cb_container'>\n";
         if ($show_avatar) {
-            $avatar = $activity->getAvatar($userlookup->userid);
+            $avatar = $forum->getAvatar($userlookup->userid);
             if (!empty($avatar)) {
                 $return .= "<div class='jfusion_cb_avatar'>\n";
                 $return .= "<img src='$avatar' />";
-                $return .= "</div>";
+                $return .= '</div>';
             }
         }
 
@@ -79,7 +90,7 @@ class getjfusionTab extends cbTabHandler {
 
             if ($show_pm_count) {
                 $return .= "<div class='jfusion_cb_pm' >\n";
-                $url_pm = JFusionFunction::routeURL($activity->getPrivateMessageURL(), $itemid);
+                $url_pm = JFusionFunction::routeURL($forum->getPrivateMessageURL(), $itemid);
                 $pmcount = $forum->getPrivateMessageCounts($userlookup->userid);
                 $pm = _UE_PM_START;
                 $pm.= ' <a href="' . $url_pm . '">' . sprintf(_UE_PM_LINK, $pmcount["total"]) . '</a>';
@@ -89,13 +100,13 @@ class getjfusionTab extends cbTabHandler {
 
             if($show_new_forummessages) {
                 $return.= "<div class='jfusion_cb_newmessages' >";
-                $url_viewnewmessages = JFusionFunction::routeURL($activity->getViewNewMessagesURL(), $itemid);
+                $url_viewnewmessages = JFusionFunction::routeURL($forum->getViewNewMessagesURL(), $itemid);
                 $return.= "<a href='$url_viewnewmessages'>" . _UE_VIEW_NEW_TOPICS . "</a></div>\n";
             }
         }
 
         if ($show_profilelink) {
-            $profilelink = $activity->getProfileURL($userlookup->userid);
+            $profilelink = $forum->getProfileURL($userlookup->userid);
             if (!empty($profilelink)) {
                 $link = JFusionFunction::routeURL($profilelink, $itemid);
                 $return .= "<div class='jfusion_cb_profilelink' >\n";
@@ -128,7 +139,7 @@ class getjfusionTab extends cbTabHandler {
                 $config['date_format'] = _DATE_FORMAT_LC2;
             }
             $config['tz_offset'] = $this->params->get('tz_offset', 0);
-            $config['result_order'] = ($this->params->get('result_order', 0)) ? "DESC" : "ASC";
+            $config['result_order'] = ($this->params->get('result_order', 0)) ? 'DESC' : 'ASC';
             $config['showdate'] = $this->params->get('showdate', 1);
             $config['showuser'] = $this->params->get('showuser', 1);
             $config['display_name'] = $this->params->get('display_name', 0);
@@ -149,162 +160,171 @@ class getjfusionTab extends cbTabHandler {
                 $config['new_window'] = '_self';
             }
             $config['selected_forums'] = $this->params->get('selected_forums_' . $jname);
-            $db = & JFusionFactory::getDatabase($jname);
-            if ($config['forum_mode'] == 0 || empty($config['selected_forums'])) {
-                $selectedforumssql = "";
-            } else if (is_array($config['selected_forums'])) {
-                $selectedforumssql = implode(",", $config['selected_forums']);
-            } else {
-                $selectedforumssql = $config['selected_forums'];
-            }
-            //define some other JFusion specific parameters
-            $query = $forum->getActivityQuery($selectedforumssql, $config['result_order'], $config['result_limit'], array('userid', $userlookup->userid));
 
-            // load
-            $db->setQuery($query[LCP]);
-            $result = $db->loadObjectList();
+	        $return .= '<h3>' . _UE_USER_FORUM_ACTIVITY . '</h3>';
+	        try {
+		        $db = JFusionFactory::getDatabase($jname);
+		        if ($config['forum_mode'] == 0 || empty($config['selected_forums'])) {
+			        $selectedforumssql = '';
+		        } else if (is_array($config['selected_forums'])) {
+			        $selectedforumssql = implode(',', $config['selected_forums']);
+		        } else {
+			        $selectedforumssql = $config['selected_forums'];
+		        }
+		        //define some other JFusion specific parameters
+		        $query = $forum->getActivityQuery($selectedforumssql, $config['result_order'], $config['result_limit'], array('userid', $userlookup->userid));
 
-            $forum->filterActivityResults($result, $config['result_limit']);
-            //reorder the keys for the for loop
-            if (is_array($result)) {
-                $result = array_values($result);
-            }
+		        // load
+		        $db->setQuery($query[LCP]);
+		        $result = $db->loadObjectList();
 
-            $return .= "<h3>" . _UE_USER_FORUM_ACTIVITY ."</h3>";
+		        $forum->filterActivityResults($result, $config['result_limit']);
+		        //reorder the keys for the for loop
+		        if (is_array($result)) {
+			        $result = array_values($result);
+		        }
 
-            if (JError::isError($db)) {
-                $return .= $db->stderr();
-            } else if (!$result) {
-                $return .= _UE_NO_POSTS;
-            } else {
-                $return .= "<ul>";
-                // process result
-                $row = 0;
-                for ($i = 0;$i < count($result);$i++) {
-                    $user_html = " ";
-                    //get the Joomla userid
-                    $userlookup = JFusionFunction::lookupUser($jname, $result[$i]->userid, false, $result[$i]->username);
-                    if ($config['avatar']) {
-                        // retrieve avatar
-                        $avatarSrc = & $config['avatar_software'];
-                        if ($jname != 'joomla_int' && $jname != 'joomla_ext' && ($avatarSrc == '' || $avatarSrc == 'jfusion')) {
-                            $avatarImg = $forum->getAvatar($result[$i]->userid);
-                        } elseif (!empty($avatarSrc) && $avatarSrc != 'jfusion' && !empty($userlookup)) {
-                            $avatarImg = JFusionFunction::getAltAvatar($avatarSrc, $userlookup->id);
-                        }
-                        if (empty($avatarImg)) {
-                            $avatarImg = JFusionFunction::getJoomlaURL() . 'components/com_jfusion/images/noavatar.png';
-                        }
+				if (!$result) {
+			        $return .= _UE_NO_POSTS;
+		        } else {
+			        $return .= '<ul>';
+			        // process result
+			        $row = 0;
+			        for ($i = 0;$i < count($result);$i++) {
+				        $user_html = ' ';
+				        //get the Joomla userid
+				        $userlookup = JFusionFunction::lookupUser($jname, $result[$i]->userid, false, $result[$i]->username);
+				        if ($config['avatar']) {
+					        // retrieve avatar
+					        $avatarSrc = & $config['avatar_software'];
+					        if ($jname != 'joomla_int' && $jname != 'joomla_ext' && ($avatarSrc == '' || $avatarSrc == 'jfusion')) {
+						        $avatarImg = $forum->getAvatar($result[$i]->userid);
+					        } elseif (!empty($avatarSrc) && $avatarSrc != 'jfusion' && !empty($userlookup)) {
+						        $avatarImg = JFusionFunction::getAltAvatar($avatarSrc, $userlookup->id);
+					        }
+					        if (empty($avatarImg)) {
+						        $avatarImg = JFusionFunction::getJoomlaURL() . 'components/com_jfusion/images/noavatar.png';
+					        }
 
-                        $maxheight = & $config['avatar_height'];
-                        $maxwidth = & $config['avatar_width'];
-                        $avatar = "<img class='activity_avatar' style='";
-                        $avatar.= (!empty($maxheight)) ? " max-height: {$maxheight}px;" : "";
-                        $avatar.= (!empty($maxwidth)) ? " max-width: {$maxheight}px;" : "";
-                        $avatar.= "' src='$avatarImg' alt='avatar' />";
-                    } else {
-                        $avatar = '';
-                    }
+					        $maxheight = & $config['avatar_height'];
+					        $maxwidth = & $config['avatar_width'];
+					        $avatar = "<img class='activity_avatar' style='";
+					        $avatar.= (!empty($maxheight)) ? " max-height: {$maxheight}px;" : '';
+					        $avatar.= (!empty($maxwidth)) ? " max-width: {$maxheight}px;" : '';
+					        $avatar.= "' src='$avatarImg' alt='avatar' />";
+				        } else {
+					        $avatar = '';
+				        }
 
-                    //process user info
-                    if ($config['showuser']) {
-                        $displayname = ($config['display_name'] && !empty($result[$i]->name)) ? $result[$i]->name : $result[$i]->username;
-                        if ($config['userlink'] && empty($result[$i]->guest)) {
-                            if ($config['userlink_software'] != '' && $config['userlink_software'] != 'jfusion' && $config["userlink_software"] != 'custom' && !empty($userlookup)) {
-                                $user_url = JFusionFunction::getAltProfileURL($config['userlink_software'], $userlookup->id);
-                            } elseif ($config['userlink_software'] == 'custom' && !empty($config['userlink_custom']) && !empty($userlookup)) {
-                                $user_url = $config['userlink_custom'] . $userlookup->id;
-                            } else {
-                                $user_url = false;
-                            }
-                            if ($user_url === false) {
-                                $user_url = JFusionFunction::routeURL($forum->getProfileURL($result[$i]->userid, $result[$i]->username), $config['itemid']);
-                            }
-                            $user_html = '<a href="' . $user_url . '" target="' . $config['new_window'] . '">' . $displayname . '</a>';
-                        } else {
-                            $user_html = $displayname;
-                        }
-                        $user_html = " - <span class='activity_user'>$user_html</span>";
-                    }
-                    //process date info
-                    if ($config['showdate']) {
-                        jimport('joomla.utilities.date');
-                        $JDate = new JDate($result[$i]->dateline);
-                        $JDate->setOffset($config['tz_offset']);
-                        $date = $JDate->toFormat($config['date_format']);
-                    } else {
-                        $date = ' ';
-                    }
+				        //process user info
+				        if ($config['showuser']) {
+					        $displayname = ($config['display_name'] && !empty($result[$i]->name)) ? $result[$i]->name : $result[$i]->username;
+					        if ($config['userlink'] && empty($result[$i]->guest)) {
+						        if ($config['userlink_software'] != '' && $config['userlink_software'] != 'jfusion' && $config["userlink_software"] != 'custom' && !empty($userlookup)) {
+							        $joomla_int = JFusionFactory::getForum('joomla_int');
+							        $user_url = $joomla_int->getProfileURL($userlookup->id);
+						        } elseif ($config['userlink_software'] == 'custom' && !empty($config['userlink_custom']) && !empty($userlookup)) {
+							        $user_url = $config['userlink_custom'] . $userlookup->id;
+						        } else {
+							        $user_url = false;
+						        }
+						        if ($user_url === false) {
+							        $user_url = JFusionFunction::routeURL($forum->getProfileURL($result[$i]->userid, $result[$i]->username), $config['itemid']);
+						        }
+						        $user_html = '<a href="' . $user_url . '" target="' . $config['new_window'] . '">' . $displayname . '</a>';
+					        } else {
+						        $user_html = $displayname;
+					        }
+					        $user_html = " - <span class='activity_user'>$user_html</span>";
+				        }
+				        //process date info
+				        if ($config['showdate']) {
+					        jimport('joomla.utilities.date');
+					        $JDate = new JDate($result[$i]->dateline);
+					        $JDate->setOffset($config['tz_offset']);
+					        $date = $JDate->toFormat($config['date_format']);
+				        } else {
+					        $date = ' ';
+				        }
 
-                    //process subject or body info
-                    $subject = (($config['replace_subject'] == 0 && empty($result[$i]->subject)) || $config['replace_subject'] == 1) ? $result[$i]->body : $result[$i]->subject;
-                    //make sure that a message is always shown
-                    if (empty($subject)) {
-                        $subject = _UE_NO_SUBJECT;
-                    } elseif (!empty($config['character_limit_subject']) && JString::strlen($subject) > $config['character_limit_subject']) {
-                        //we need to shorten the subject
-                        $subject = JString::substr($subject, 0, $config['character_limit_subject']) . '...';
-                    }
+				        //process subject or body info
+				        $subject = (($config['replace_subject'] == 0 && empty($result[$i]->subject)) || $config['replace_subject'] == 1) ? $result[$i]->body : $result[$i]->subject;
+				        //make sure that a message is always shown
+				        if (empty($subject)) {
+					        $subject = _UE_NO_SUBJECT;
+				        } elseif (!empty($config['character_limit_subject']) && JString::strlen($subject) > $config['character_limit_subject']) {
+					        //we need to shorten the subject
+					        $subject = JString::substr($subject, 0, $config['character_limit_subject']) . '...';
+				        }
 
-                    //combine all info into an urlstring
-                    $urlstring = '<span class="activity_title">';
-                    if ($config['linktype'] == LINKPOST) {
-                        $urlstring_pre = JFusionFunction::routeURL($forum->getPostURL($result[$i]->threadid, $result[$i]->postid), $config['itemid']);
-                        $urlstring.= '<a href="' . $urlstring_pre . '" target="' . $config['new_window'] . '">' . $subject . '</a>';
-                    } else {
-                        $urlstring_pre = JFusionFunction::routeURL($forum->getThreadURL($result[$i]->threadid), $config['itemid']);
-                        $urlstring.= '<a href="' . $urlstring_pre . '" target="' . $config['new_window'] . '">' . $subject . '</a>';
-                    }
-                    $urlstring.= '</span>';
+				        //combine all info into an urlstring
+				        $urlstring = '<span class="activity_title">';
+				        if ($config['linktype'] == LINKPOST) {
+					        $urlstring_pre = JFusionFunction::routeURL($forum->getPostURL($result[$i]->threadid, $result[$i]->postid), $config['itemid']);
+					        $urlstring.= '<a href="' . $urlstring_pre . '" target="' . $config['new_window'] . '">' . $subject . '</a>';
+				        } else {
+					        $urlstring_pre = JFusionFunction::routeURL($forum->getThreadURL($result[$i]->threadid), $config['itemid']);
+					        $urlstring.= '<a href="' . $urlstring_pre . '" target="' . $config['new_window'] . '">' . $subject . '</a>';
+				        }
+				        $urlstring.= '</span>';
 
-                    //gotta make it presentable
-                    if ($config['display_body'] == 1) {
-                        $body = $result[$i]->body;
-                        $status = $public->prepareText($body,'activity', $this->params, $result[$i]);
-                        if (!empty($config['character_limit']) && empty($status['limit_applied']) && JString::strlen($body) > $config['character_limit']) {
-                            $body = JString::substr($body, 0, $config['character_limit']) . '...';
-                        }
-                        $body = "<br />" . $body;
-                    } else {
-                        $body = "";
-                    }
+				        //gotta make it presentable
+				        if ($config['display_body'] == 1) {
+					        $body = $result[$i]->body;
+					        $status = $public->prepareText($body,'activity', $this->params, $result[$i]);
+					        if (!empty($config['character_limit']) && empty($status['limit_applied']) && JString::strlen($body) > $config['character_limit']) {
+						        $body = JString::substr($body, 0, $config['character_limit']) . '...';
+					        }
+					        $body = "<br />" . $body;
+				        } else {
+					        $body = '';
+				        }
 
-                    //put it all together for output
-                    //prevents the images from cascading
-                    $liStyle = (!empty($avatar)) ? ' style="clear:left;"' : '';
-                    if ($config['shownew'] && method_exists($forum, 'checkReadStatus') && $forum->checkReadStatus($result[$i])) {
-                        $newicon = '<img src="' . JFusionFunction::getJoomlaURL() . 'components/com_jfusion/images/new.png" style="margin-left:2px; margin-right:2px;"/>';
-                    } else {
-                        $newicon = ' ';
-                    }
-                    $return.= '<li' . $liStyle . ' class="activity_row' . $row . '">' . $avatar . $urlstring;
-                    $row = ($row) ? 0 : 1;
+				        //put it all together for output
+				        //prevents the images from cascading
+				        $liStyle = (!empty($avatar)) ? ' style="clear:left;"' : '';
+				        if ($config['shownew'] && method_exists($forum, 'checkReadStatus') && $forum->checkReadStatus($result[$i])) {
+					        $newicon = '<img src="' . JFusionFunction::getJoomlaURL() . 'components/com_jfusion/images/new.png" style="margin-left:2px; margin-right:2px;"/>';
+				        } else {
+					        $newicon = ' ';
+				        }
+				        $return.= '<li' . $liStyle . ' class="activity_row' . $row . '">' . $avatar . $urlstring;
+				        $row = ($row) ? 0 : 1;
 
-                    if ($newicon) {
-                        $return .= " $newicon";
-                    }
-                    if ($user) {
-                        $return .= $user_html;
-                    }
-                    if ($date) {
-                        $return .= " $date";
-                    }
-                    if ($body) {
-                        $return .= "$body";
-                    }
-                    $return .= '<div class="activity_clearfix"></div></li>';
-                }
-                $return.= "</ul>";
-            }
-            $return .= "</div>\n";
-
+				        if ($newicon) {
+					        $return .= " $newicon";
+				        }
+				        if ($user) {
+					        $return .= $user_html;
+				        }
+				        if ($date) {
+					        $return .= " $date";
+				        }
+				        if ($body) {
+					        $return .= "$body";
+				        }
+				        $return .= '<div class="activity_clearfix"></div></li>';
+			        }
+			        $return.= '</ul>';
+		        }
+		        $return .= "</div>\n";
+	        } catch (Exception $e) {
+		        $return .= $e->getMessage();
+	        }
         }
-        $return .= "</div>";
+        $return .= '</div>';
 
         return $return;
     }
 
-    function getJFusionPlugins($name,$value,$control_name) {
+	/**
+	 * @param $name
+	 * @param $value
+	 * @param $control_name
+	 *
+	 * @return mixed
+	 */
+	function getJFusionPlugins($name,$value,$control_name) {
         $db =& JFactory::getDBO();
         $query = "SELECT * FROM #__jfusion WHERE status = 1 AND name NOT LIKE 'joomla_int'";
         $db->setQuery($query);
@@ -322,7 +342,14 @@ class getjfusionTab extends cbTabHandler {
         return moscomprofilerHTML::selectList( $list, $control_name .'['. $name .'][]', 'class="inputbox"', 'value', 'text', $valAsObj, true );
     }
 
-    function getJFusionItemids($name, $value, $control_name) {
+	/**
+	 * @param $name
+	 * @param $value
+	 * @param $control_name
+	 *
+	 * @return string
+	 */
+	function getJFusionItemids($name, $value, $control_name) {
         global $mainframe;
         static $elId;
         if (!is_int($elId)) {
@@ -349,8 +376,15 @@ class getjfusionTab extends cbTabHandler {
         return $html;
     }
 
-    function getJFusionForumlist($name, $value, $control_name) {
-        $cids = JRequest::getVar('cid');
+	/**
+	 * @param $name
+	 * @param $value
+	 * @param $control_name
+	 *
+	 * @return mixed|string
+	 */
+	function getJFusionForumlist($name, $value, $control_name) {
+		$cids = JFactory::getApplication()->input->get('cid', array(), 'array');
         $tabid = $cids[0];
         $db =& JFactory::getDBO();
         $query = "SELECT params FROM #__comprofiler_tabs WHERE tabid = $tabid";
@@ -362,9 +396,9 @@ class getjfusionTab extends cbTabHandler {
         $itemid = $params->get('itemid');
 
         if (is_numeric($itemid)) {
-            $app    = JApplication::getInstance('site');
-            $menu = & $app->getMenu();
-            $menu_param = & $menu->getParams($itemid);
+            $app = JFactory::getApplication('site');
+            $menu = $app->getMenu();
+            $menu_param =& $menu->getParams($itemid);
             $plugin_param = unserialize(base64_decode($menu_param->get('JFusionPluginParam')));
             $jname = $plugin_param['jfusionplugin'];
         } else {
@@ -372,7 +406,7 @@ class getjfusionTab extends cbTabHandler {
         }
 
         if ($jname) {
-            $forum = & JFusionFactory::getForum($jname);
+            $forum = JFusionFactory::getForum($jname);
             $forumlist = $forum->getForumList();
             $return = JHTML::_('select.genericlist', $forumlist, $control_name . '[' . $name . '][]', 'multiple size="6" class="inputbox"', 'id', 'name', $value);
         } else {
@@ -388,7 +422,7 @@ class getjfusionTab extends cbTabHandler {
     {
         if ($success) {
             //update JFusion's plugins activation status
-	        $plugins = & JFusionFactory::getPlugins();
+	        $plugins = JFusionFactory::getPlugins();
 
             //add a couple items in the way JFusion uses it
             $user->group_id = & $user->gid;
@@ -401,7 +435,7 @@ class getjfusionTab extends cbTabHandler {
 
 	        //add the usergroup and profile references
 	        $user->reference = new stdClass();
-	        $JFusionParams =& JFusionFactory::getParams('joomla_int');
+	        $JFusionParams = JFusionFactory::getParams('joomla_int');
 	        $tmp = $JFusionParams->get('usergroups');
 	        $user->reference->usergroup = (substr($tmp, 0, 2) == 'a:') ? unserialize($tmp) : '';
 	        $tmp = $JFusionParams->get('profiles');
@@ -409,7 +443,7 @@ class getjfusionTab extends cbTabHandler {
 
             foreach ($plugins as $plugin) {
                 if ($plugin->name != 'joomla_int') {
-                    $JFusionUser = & JFusionFactory::getUser($plugin->name);
+                    $JFusionUser = JFusionFactory::getUser($plugin->name);
                     $status = $JFusionUser->updateUser($user, 0);
                 }
             }
@@ -419,6 +453,12 @@ class getjfusionTab extends cbTabHandler {
     }
 }
 
+/**
+ * @param $itemid
+ * @param $user
+ *
+ * @return array
+ */
 function getJFusionVars($itemid, &$user)
 {
     static $jfusion_vars;
@@ -429,8 +469,9 @@ function getJFusionVars($itemid, &$user)
 
     if (empty($jfusion_vars[$itemid])) {
         if (is_numeric($itemid)) {
-            $menu = & JSite::getMenu();
-            $menu_param = & $menu->getParams($itemid);
+	        $app = JFactory::getApplication();
+	        $menu = $app->getMenu('site');
+            $menu_param = $menu->getParams($itemid);
             $plugin_param = unserialize(base64_decode($menu_param->get('JFusionPluginParam')));
             $jname = $plugin_param['jfusionplugin'];
         } else {
@@ -441,9 +482,9 @@ function getJFusionVars($itemid, &$user)
             $jfusion_vars[$itemid] = false;
         }
 
-	    $plugin = & JFusionFactory::getPublic($jname);
+	    $plugin = JFusionFactory::getPublic($jname);
 
-        $jfusion_vars[$itemid] = array("jname" => $jname, "plugin" => $plugin);
+        $jfusion_vars[$itemid] = array('jname' => $jname, 'plugin' => $plugin);
     }
 
     //make sure we have a matched user
