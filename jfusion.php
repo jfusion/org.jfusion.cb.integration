@@ -436,11 +436,11 @@ class getjfusionTab extends cbTabHandler {
 	        //add the usergroup and profile references
 	        $user->reference = new stdClass();
 	        $JFusionParams = JFusionFactory::getParams('joomla_int');
-	        $tmp = $JFusionParams->get('usergroups');
-	        $user->reference->usergroup = (substr($tmp, 0, 2) == 'a:') ? unserialize($tmp) : '';
+	        $user->reference->usergroup = JFusionFactory::getAdmin('joomla_int')->getDefaultUsergroup();
+/**
 	        $tmp = $JFusionParams->get('profiles');
 	        $user->reference->profile = (substr($tmp, 0, 2) == 'a:') ? unserialize($tmp) : '';
-
+*/
             foreach ($plugins as $plugin) {
                 if ($plugin->name != 'joomla_int') {
                     $JFusionUser = JFusionFactory::getUser($plugin->name);
