@@ -425,8 +425,10 @@ class getjfusionTab extends cbTabHandler {
 	        $plugins = JFusionFactory::getPlugins();
 
             //add a couple items in the way JFusion uses it
-            $user->group_id = & $user->gid;
-            $user->userid = & $user->id;
+            $user->group_id = $user->gid;
+	        $user->groups = $user->gids;
+
+            $user->userid = $user->id;
             if (strpos($user->password, ':') !== false) {
                 $saltStart = strpos($user->password, ':');
                 $user->password_salt = substr($user->password, $saltStart + 1);
@@ -440,7 +442,6 @@ class getjfusionTab extends cbTabHandler {
                 }
             }
         }
-
         return true;
     }
 }
