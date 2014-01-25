@@ -68,7 +68,7 @@ class getjfusionTab extends cbTabHandler {
             return 'No user found!';
         }
 
-        $document = & JFactory::getDocument();
+        $document = JFactory::getDocument();
         $document->addStylesheet(JURI::root() . 'components/com_comprofiler/plugin/user/plug_jfusionintegration/jfusion.css');
 
 	    $public = JFusionFactory::getPublic($jname);
@@ -85,7 +85,7 @@ class getjfusionTab extends cbTabHandler {
         }
 
         if (!$my->guest && $my->id == $user->id) {
-            $lang = & JFactory::getLanguage();
+            $lang = JFactory::getLanguage();
             $lang->load('mod_jfusion_user_activity');
 
             if ($show_pm_count) {
@@ -196,7 +196,7 @@ class getjfusionTab extends cbTabHandler {
 				        $userlookup = JFusionFunction::lookupUser($jname, $result[$i]->userid, false, $result[$i]->username);
 				        if ($config['avatar']) {
 					        // retrieve avatar
-					        $avatarSrc = & $config['avatar_software'];
+					        $avatarSrc = $config['avatar_software'];
 					        if ($jname != 'joomla_int' && $jname != 'joomla_ext' && ($avatarSrc == '' || $avatarSrc == 'jfusion')) {
 						        $avatarImg = $forum->getAvatar($result[$i]->userid);
 					        } elseif (!empty($avatarSrc) && $avatarSrc != 'jfusion' && !empty($userlookup)) {
@@ -206,8 +206,8 @@ class getjfusionTab extends cbTabHandler {
 						        $avatarImg = JFusionFunction::getJoomlaURL() . 'components/com_jfusion/images/noavatar.png';
 					        }
 
-					        $maxheight = & $config['avatar_height'];
-					        $maxwidth = & $config['avatar_width'];
+					        $maxheight = $config['avatar_height'];
+					        $maxwidth = $config['avatar_width'];
 					        $avatar = "<img class='activity_avatar' style='";
 					        $avatar.= (!empty($maxheight)) ? " max-height: {$maxheight}px;" : '';
 					        $avatar.= (!empty($maxwidth)) ? " max-width: {$maxheight}px;" : '';
@@ -325,7 +325,7 @@ class getjfusionTab extends cbTabHandler {
 	 * @return mixed
 	 */
 	function getJFusionPlugins($name,$value,$control_name) {
-        $db =& JFactory::getDBO();
+        $db = JFactory::getDBO();
         $query = "SELECT * FROM #__jfusion WHERE status = 1 AND name NOT LIKE 'joomla_int'";
         $db->setQuery($query);
         $plugins = $db->loadObjectList();
@@ -357,8 +357,8 @@ class getjfusionTab extends cbTabHandler {
         } else {
             $elId++;
         }
-        $db = & JFactory::getDBO();
-        $doc = & JFactory::getDocument();
+        $db = JFactory::getDBO();
+        $doc = JFactory::getDocument();
         $template = $mainframe->getTemplate();
         $fieldName = $control_name . '[' . $name . ']';
         $js = "
@@ -386,7 +386,7 @@ class getjfusionTab extends cbTabHandler {
 	function getJFusionForumlist($name, $value, $control_name) {
 		$cids = JFactory::getApplication()->input->get('cid', array(), 'array');
         $tabid = $cids[0];
-        $db =& JFactory::getDBO();
+        $db = JFactory::getDBO();
         $query = "SELECT params FROM #__comprofiler_tabs WHERE tabid = $tabid";
         $db->setQuery($query);
         $rawParams = $db->loadResult();
@@ -398,7 +398,7 @@ class getjfusionTab extends cbTabHandler {
         if (is_numeric($itemid)) {
             $app = JFactory::getApplication('site');
             $menu = $app->getMenu();
-            $menu_param =& $menu->getParams($itemid);
+            $menu_param = $menu->getParams($itemid);
             $plugin_param = unserialize(base64_decode($menu_param->get('JFusionPluginParam')));
             $jname = $plugin_param['jfusionplugin'];
         } else {
